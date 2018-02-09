@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package api;
+
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloResponse) {}
+}
+
+enum Language {
+  ENGLISH = 0;
+  JAPANESE = 1;
+}
+
+message Person {
+  string first_name = 1;
+  string last_name = 2;
+}
+
+message HelloRequest {
+  Person you = 1;
+  repeated Person theirs = 2;
+  Language language = 3;
+}
+
+message HelloResponse {
+  string message = 1;
+}
