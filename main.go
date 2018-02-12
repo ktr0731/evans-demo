@@ -1,43 +1,69 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"net"
-	"strings"
 
 	"golang.org/x/net/context"
 
+	"github.com/k0kubun/pp"
 	"github.com/ktr0731/evans-demo/api"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-type GreeterService struct{}
+type User struct {
+	id                  string
+	firstName, lastName string
+	gender              api.Gender
+}
 
-func (s *GreeterService) SayHello(ctx context.Context, req *api.HelloRequest) (*api.HelloResponse, error) {
-	var msg string
-	switch req.GetLanguage() {
-	case api.Language_ENGLISH:
-		msg = "Hello, %s also %s!"
-	case api.Language_JAPANESE:
-		msg = "こんにちは, %s と %s!"
-	default:
-		return nil, status.Error(codes.InvalidArgument, "unknown language type")
+type UserService struct {
+	store map[string]*User
+}
+
+func (s *UserService) RegisterUsers(ctx context.Context, req *api.RegisterUsersRequest) (*api.RegisterUsersResponse, error) {
+	for _, user := range req.GetUsers() {
+		id := uuid.NewV4().String()
+		s.store[id] = &User{
+			id:        id,
+			firstName: user.GetFirstName(),
+			lastName:  user.GetLastName(),
+			gender:    user.GetGender(),
+		}
 	}
-	you := makeName(req.GetYou())
-	theirs := make([]string, 0, len(req.GetTheirs()))
-	for _, p := range req.GetTheirs() {
-		theirs = append(theirs, makeName(p))
-	}
-	return &api.HelloResponse{
-		Message: fmt.Sprintf(msg, you, strings.Join(theirs, ", ")),
+	return &api.RegisterUsersResponse{
+		Message: "registration successful",
 	}, nil
 }
 
-func makeName(p *api.Person) string {
-	return fmt.Sprintf("%s %s", p.FirstName, p.LastName)
+func (s *UserService) ListUsers(ctx context.Context, req *api.ListUsersRequest) (*api.ListUsersResponse, error) {
+	users := make([]*api.ListUsersResponse_User, 0, len(s.store))
+	for _, user := range s.store {
+		users = append(users, &api.ListUsersResponse_User{
+			Id:   user.id,
+			Name: user.firstName + " " + user.lastName,
+		})
+	}
+	return &api.ListUsersResponse{
+		Users: users,
+	}, nil
+}
+
+func (s *UserService) GetUser(ctx context.Context, req *api.GetUserRequest) (*api.GetUserResponse, error) {
+	pp.Println(req.GetId())
+	user, ok := s.store[req.GetId()]
+	if !ok {
+		return nil, errors.New("no such user")
+	}
+	return &api.GetUserResponse{
+		User: &api.User{
+			FirstName: user.firstName,
+			LastName:  user.lastName,
+			Gender:    user.gender,
+		},
+	}, nil
 }
 
 func main() {
@@ -47,7 +73,7 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	api.RegisterGreeterServer(server, &GreeterService{})
+	api.RegisterUserServiceServer(server, &UserService{store: map[string]*User{}})
 	if err := server.Serve(l); err != nil {
 		log.Fatal(err)
 	}
