@@ -2,8 +2,10 @@ syntax = "proto3";
 
 package api;
 
-service Greeter {
-  rpc SayHello (HelloRequest) returns (HelloResponse) {}
+service HumanService {
+  rpc RegisterUsers (RegisterUsersRequest) returns (RegisterUsersResponse) {}
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
 }
 
 enum Language {
@@ -11,17 +13,40 @@ enum Language {
   JAPANESE = 1;
 }
 
-message Person {
+enum Gender {
+  MALE = 0;
+  FEMALE = 1;
+  OTHER = 2;
+}
+
+message User {
   string first_name = 1;
   string last_name = 2;
+  Gender gender = 3;
 }
 
-message HelloRequest {
-  Person you = 1;
-  repeated Person theirs = 2;
-  Language language = 3;
+message RegisterUsersRequest {
+  repeated User users = 1;
 }
 
-message HelloResponse {
+message RegisterUsersResponse {
   string message = 1;
+}
+
+message ListUsersRequest {}
+
+message ListUsersResponse {
+  message User {
+    int32 id = 1;
+    string name = 2;
+  }
+  repeated User users = 1;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
 }
