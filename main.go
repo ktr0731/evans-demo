@@ -28,7 +28,7 @@ type UserService struct {
 	h     hash.Hash
 }
 
-func (s *UserService) RegisterUsers(ctx context.Context, req *api.RegisterUsersRequest) (*api.RegisterUsersResponse, error) {
+func (s *UserService) CreateUsers(ctx context.Context, req *api.CreateUsersRequest) (*api.CreateUsersResponse, error) {
 	for _, user := range req.GetUsers() {
 		if _, err := io.WriteString(s.h, user.GetFirstName()+user.GetLastName()); err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to generate id: %s", err)
@@ -42,7 +42,7 @@ func (s *UserService) RegisterUsers(ctx context.Context, req *api.RegisterUsersR
 		}
 		s.h.Reset()
 	}
-	return &api.RegisterUsersResponse{
+	return &api.CreateUsersResponse{
 		Message: "registration successful",
 	}, nil
 }
