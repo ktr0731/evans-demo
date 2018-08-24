@@ -3,7 +3,7 @@ syntax = "proto3";
 package api;
 
 service UserService {
-  rpc RegisterUsers (RegisterUsersRequest) returns (RegisterUsersResponse) {}
+  rpc CreateUsers(CreateUsersRequest) returns (CreateUsersResponse) {}
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
 }
@@ -25,11 +25,11 @@ message User {
   Gender gender = 3;
 }
 
-message RegisterUsersRequest {
+message CreateUsersRequest {
   repeated User users = 1;
 }
 
-message RegisterUsersResponse {
+message CreateUsersResponse {
   string message = 1;
 }
 
